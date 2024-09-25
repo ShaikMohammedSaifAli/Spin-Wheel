@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin the Wheel Challenge</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4; /* Light background */
+        }
+        h1 {
+            margin-top: 20px;
+            color: #333;
+        }
+        /* Modal styles */
+        #modal {
+            display: none; /* Hidden by default */
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.7); /* Dark background for modal */
+            padding-top: 60px; 
+        }
+        #modalContent {
+            background-color: #fff;
+            margin: 5% auto; 
+            padding: 30px; /* Increased padding */
+            border-radius: 8px;
+            width: 90%; 
+            max-width: 400px; /* Maximum width for the modal */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s; /* Modal fade-in effect */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* Wheel styling */
+        #wheel {
+            margin: 50px auto;
+            height: 500px; /* Increased height */
+            width: 500px;  /* Increased width */
+            border: 10px solid #333; /* Thicker border for wheel */
+            border-radius: 50%;
+            position: relative;
+            transform: rotate(0deg); /* Ensure rotation starts from 0deg */
+            transition: transform 4s ease-out; /* Smooth spin animation */
+            background: conic-gradient(
+                #ffdd54 0deg 72deg,   /* Yellow from 0 to 90 degrees */
+                #66ccff 72deg 144deg, /* Light Blue from 90 to 180 degrees */
+                #66ff66 144deg 216deg, /* Light Green from 180 to 230 degrees */
+                #ff6600 216deg 288deg, /* Orange from 230 to 300 degrees */
+                #c560a5 288deg 360deg  /* Purple from 300 to 360 degrees */
+            );
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Shadow for wheel */
+        }
+        .wheel-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0; /* Center the text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: larger;
+        }
+        .offer {
+            position: absolute;
+            text-align: center;
+            font-size: 16px; /* Increased font size for better visibility */
+            font-weight: bold;
+            color: #fff; /* Change text color to white for better contrast */
+            width: 50px; /* Fixed width to align text */
+        }
+        /* Offers positions - These should match the equal divisions */
+        .offer1 { transform: rotate(36deg) translate(150px); font-size: 90%; margin-bottom: 10%; margin-left: 12%; }
+        .offer2 { transform: rotate(108deg) translate(150px); font-size: 90%; margin-left: 18%; }
+        .offer3 { transform: rotate(180deg) translate(150px); font-size: 90%; margin-bottom: -15%; margin-left: 1%; }
+        .offer4 { transform: rotate(252deg) translate(150px); font-size: 90%; margin-bottom: -8%; margin-left: -18%; }
+        .offer5 { transform: rotate(324deg) translate(150px); font-size: 90%; margin-bottom: 10%; margin-left: -10%; }
+        
+        #spinBtn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 20px;
+            background-color: #28a745; /* Green background */
+            color: white; /* White text */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* Smooth hover effect */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow for button */
+        }
+        #spinBtn:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+            font-weight: bold;
+        }
+        .pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent; /* Pointer size */
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid red; /* Pointer color */
+            position: absolute;
+            top: -30px; /* Pointer position */
+            left: 50%;
+            transform: translateX(-50%) rotate(180deg); /* Rotate pointer to face downward */
+            z-index: 10; /* Ensure pointer is on top of the wheel */
+        }
+        form {
+            margin-bottom: 20px;
+            text-align: left; /* Align text to the left */
+        }
+        .form-heading {
+            margin-bottom: 20px; /* Space below heading */
+            font-size: 22px; /* Heading size */
+            color: #333;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            padding: 12px; /* Increased padding */
+            width: 100%; /* Full width */
+            border: 1px solid #ccc;
+            border-radius: 5px; /* Rounded corners */
+            margin: 10px 0; /* Added margin for spacing */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s; /* Smooth border color change */
+        }
+        input[type="text"]:focus {
+            border-color: #28a745; /* Change border color on focus */
+            outline: none; /* Remove outline */
+        }
+        button { cursor: pointer; background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;  /* Full width */ margin-top: 10px; /* Spacing above button */} button:hover { background-color: #0056b3; /* Darker blue on hover */ }
+        #offerCard {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 40px; /* Increased padding for a bigger card */
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 500px; /* Increased width for the card */
+    max-width: 90%; /* Responsive max-width */
+}
+
+#offerText {
+    font-size: 24px; /* Increased font size for offer text */
+    margin-bottom: 20px; /* Space below offer text */
+    text-align: center; /* Center text */
+}
+
+.close-btn {
+    margin-top: 10px;
+    background-color: #dc3545; /* Red background */
+    border: none;
+    color: white;
+    padding: 12px; /* Increased padding */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px; /* Increased font size */
+}
+
+.close-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+/* Add this CSS to your existing styles */
+@media (max-width: 768px) {
+    #wheel {
+        height: 300px; /* Reduce height on smaller screens */
+        width: 300px;  /* Reduce width on smaller screens */
+    }
+    .offer {
+        font-size: 14px; /* Decrease font size for offers */
+        width: 40px; /* Adjust width to fit better */
+    }
+    .pointer {
+        border-left: 10px solid transparent; /* Adjust pointer size */
+        border-right: 10px solid transparent;
+        border-bottom: 20px solid red; /* Adjust pointer size */
+    }
+    #modalContent {
+        width: 90%; /* Full width on mobile */
+        padding: 20px; /* Reduce padding for mobile */
+    }
+    #offerCard {
+        width: 80%; /* Full width on mobile */
+        padding: 20px; /* Reduce padding for mobile */
+    }
+    input[type="text"] {
+        padding: 10px; /* Reduce padding for input fields */
+    }
+    #spinBtn {
+        padding: 10px 20px; /* Adjust button padding */
+        font-size: 18px; /* Decrease button font size */
+    }
+    #result {
+        font-size: 20px; /* Decrease font size for result display */
+    }
+}
+
+@media (max-width: 480px) {
+    #wheel {
+        height: 250px; /* Further reduce height for extra small screens */
+        width: 250px;  /* Further reduce width for extra small screens */
+    }
+    .offer {
+        font-size: 12px; /* Further decrease font size for offers */
+        width: 30px; /* Adjust width to fit better */
+    }
+    .pointer {
+        border-left: 8px solid transparent; /* Adjust pointer size */
+        border-right: 8px solid transparent;
+        border-bottom: 16px solid red; /* Adjust pointer size */
+    }
+    #modalContent {
+        width: 95%; /* Nearly full width on small screens */
+        padding: 15px; /* Reduce padding for mobile */
+    }
+    #offerCard {
+        width: 90%; /* Full width on small screens */
+        padding: 15px; /* Reduce padding for mobile */
+    }
+    input[type="text"] {
+        padding: 8px; /* Further reduce padding for input fields */
+    }
+    #spinBtn {
+        padding: 8px 16px; /* Adjust button padding */
+        font-size: 16px; /* Decrease button font size */
+    }
+    #result {
+        font-size: 18px; /* Decrease font size for result display */
+    }
+}
+/* Existing styles here */
+
+/* Additional Styles */
+body {
+    background-image: linear-gradient(to bottom right, #f4f4f4, #e2e2e2); /* Gradient background */
+}
+
+h1 {
+    font-size: 3em; /* Further increase title size */
+    margin: 40px 0; /* Adjust margins for better spacing */
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5); /* Enhanced shadow for depth */
+}
+
+#modal {
+    border-radius: 10px; /* Rounded corners for modal */
+    animation: slideDown 0.5s; /* Modal slide down effect */
+    backdrop-filter: blur(8px); /* Stronger blur effect for focus */
+}
+
+#modalContent {
+    border: 3px solid #28a745; /* Thicker green border */
+    transition: transform 0.4s, box-shadow 0.4s; /* Smooth scaling and shadow change */
+}
+
+#modalContent:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Shadow increase on hover */
+}
+
+#spinBtn {
+    background-image: linear-gradient(to right, #28a745, #5cb85c); /* Gradient background for button */
+    border: 2px solid #218838; /* Darker border for button */
+    font-weight: bold; /* Make button text bold */
+    transition: transform 0.3s, box-shadow 0.3s; /* Smooth scaling and shadow change */
+}
+
+#spinBtn:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); /* Shadow increase on hover */
+}
+
+#result {
+    border: 3px dashed #333; /* Thicker dashed border */
+    padding: 20px; /* More padding for result area */
+    border-radius: 8px; /* More rounded corners */
+    background-color: #e7f7e7; /* Light green background for result */
+    margin: 30px auto; /* Center result area with more space */
+    width: fit-content; /* Fit to content width */
+    animation: fadeIn 0.7s; /* Fade in effect for result display */
+}
+
+.close-btn {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect for close button */
+    transition: transform 0.3s, background-color 0.3s; /* Smooth scaling and background change */
+    padding: 15px 25px; /* Increased padding for the close button */
+}
+
+.close-btn:hover {
+    transform: scale(1.05); /* Slightly enlarge close button on hover */
+    background-color: #c82333; /* Darker red on hover */
+}
+
+.offer {
+    transition: transform 0.3s, color 0.3s; /* Smooth scaling and color change */
+    font-weight: 600; /* Bold font for offers */
+}
+
+.offer:hover {
+    transform: scale(1.15); /* Slightly enlarge offer text on hover */
+    color: #ff6600; /* Change color on hover for emphasis */
+}
+
+/* Add hover effect on wheel */
+#wheel:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Increased shadow on hover */
+}
+
+/* Add a transition effect for the wheel */
+#wheel {
+    transition: box-shadow 0.3s, transform 0.3s; /* Smooth transition for shadow and transform */
+}
+
+/* Additional Media Queries for Improved Responsiveness */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5em; /* Adjust title size for smaller screens */
+    }
+
+    #modalContent {
+        padding: 20px; /* Reduce padding for mobile */
+        border-radius: 8px; /* Less rounding for mobile */
+    }
+
+    #result {
+        margin: 20px auto; /* Center result area with reduced space */
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8em; /* Further adjust title size */
+    }
+
+    #wheel {
+        height: 180px; /* Further reduce height for extra small screens */
+        width: 180px;  /* Further reduce width for extra small screens */
+    }
+
+    .offer {
+        font-size: 12px; /* Further decrease font size for offers */
+        width: 35px; /* Adjust width to fit better */
+    }
+
+    input[type="text"] {
+        padding: 10px; /* Reduce padding for smaller screens */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <h1>Spin the Wheel Challenge</h1>
+    
+    <!-- Modal for Form -->
+    <div id="modal">
+        <div id="modalContent">
+            <form id="userForm">
+                <div class="form-heading">Enter Your Details</div> <!-- Form heading -->
+                <input type="text" id="name" placeholder="Name" required><br>
+                <input type="text" id="mobile" placeholder="Mobile Number" maxlength="10" required><br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="wheel" style="display:none;">
+        <!--<div class="pointer"></div>-->
+        <div class="wheel-text">
+            <!-- Offers added inside the wheel -->
+            <div class="offer offer1">10% OFF</div>
+            <div class="offer offer2">Free Item</div>
+            <div class="offer offer3">Buy 1 Get 1</div>
+            <div class="offer offer4">15% OFF</div>
+            <div class="offer offer5">Surprise Gift</div>
+        </div>
+    </div>
+    
+    <button id="spinBtn" disabled>Spin the Wheel</button>
+    <div id="result"></div>
+    
+    <!-- Offer card -->
+    <div id="offerCard">
+        <div id="offerText"></div>
+        <button class="close-btn">Close</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const offers = ["10% OFF", "Free Item", "Buy 1 Get 1", "15% OFF", "Surprise Gift"];
+        let canSpin = false;
+        let nextSpinMessage = ""; // Variable to store next spin message
+        let spinCount = 0; // Initialize spin count
+        let offerHistory = {}; // Store the offers given to users
+    
+        $(document).ready(function() {
+            // Show the modal on page load
+            $('#modal').show();
+    
+            $('#userForm').on('submit', function(event) {
+                event.preventDefault();
+                const name = $('#name').val();
+                const mobile = $('#mobile').val();
+    
+                // Send user data to backend and check if they can spin
+                $.post('/submit', { name, mobile }, function(response) {
+                    if (response.canSpin) {
+                        canSpin = true;
+                        $('#spinBtn').prop('disabled', false);
+                        $('#modal').hide(); // Hide modal
+                        $('#wheel').show(); // Show the wheel
+                    } else {
+                        alert('You can spin again after ' + response.nextSpin);
+                    }
+                });
+            });
+    
+            $('#spinBtn').on('click', function() {
+                if (canSpin) {
+                    spinCount++; // Increment the spin count
+                    const resultIndex = Math.floor(Math.random() * offers.length);
+                    const resultOffer = offers[resultIndex];
+                    const degrees = (resultIndex * 72) + (360 * 50);  // Multiple full rotations for smooth spin effect
+    
+                    $('#wheel').css('transform', `rotate(${degrees}deg)`);
+                    
+                    // Show countdown timer before revealing offer
+                    let countdownTime = 3; // 3 seconds countdown
+                    const countdownInterval = setInterval(() => {
+                        $('#result').text(`Revealing your offer in ${countdownTime} seconds...`);
+                        countdownTime--;
+                        if (countdownTime < 0) {
+                            clearInterval(countdownInterval);
+                            $('#offerText').text("You got: " + resultOffer);
+                            $('#offerCard').fadeIn(); // Show offer card
+    
+                            // Store the offer for the user
+                            const userId = $('#mobile').val(); // Use mobile as a unique user ID
+                            if (!offerHistory[userId]) {
+                                offerHistory[userId] = resultOffer; // Store the first offer
+                            }
+    
+                            // Send result to backend to store spin time
+                            $.post('/spin', { mobile: userId, spinResult: resultOffer }, function(response) {
+                                if (response.nextSpin) {
+                                    nextSpinMessage = 'You can spin again after ' + response.nextSpin; // Store message for later
+                                    $('#spinBtn').prop('disabled', true); // Disable spin button
+                                }
+                            });
+    
+                            // Check if spin count has reached 5
+                            if (spinCount >= 5) {
+                                alert("You have reached the maximum number of spins. Logging you out.");
+                                // Log out the user (you may need to implement a logout function here)
+                                $.post('/logout', { mobile: userId }, function() {
+                                    // Redirect or reload the page after logging out
+                                    location.reload(); // Reload the page to reflect logout
+                                });
+                            }
+                        }
+                    }, 1000); // Update every second
+                }
+            });
+    
+            $('.close-btn').on('click', function() {
+                $('#offerCard').fadeOut(); // Hide offer card
+                // Show alert if next spin message exists
+                if (nextSpinMessage) {
+                    alert(nextSpinMessage);
+                    nextSpinMessage = ""; // Clear the message after showing the alert
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>
